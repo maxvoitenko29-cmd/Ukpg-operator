@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Калькулятори УКПГ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f5f7;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-border: rgba(0, 0, 0, 0.06);
+  --text: #1d1d1f;
+  --muted: #86868b;
+  --accent: #007aff;
+  --purple: #7546e8;
+  --danger: #ff3b30;
+  --input-bg: #eef0f3;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --shadow-sm: 0 4px 14px rgba(0,0,0,0.04);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
+  --barrel-w: 160px;
+  --barrel-h: 46px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 10% -10%, rgba(0, 122, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 70% at 100% 0%, rgba(175, 82, 222, 0.05) 0%, transparent 45%),
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255, 149, 0, 0.04) 0%, transparent 40%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 16px 12px 40px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mac-window-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0b0c16;
+  padding: 12px 12px;
+  border-radius: 0;
+  border: 3px solid #fc7460;
+  box-shadow: 3px 3px 0 #000;
+}
+.mac-dots { display: flex; gap: 7px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot-close { background-color: #ff5f56; border: 0.5px solid #e0443e; }
+.dot-min { background-color: #ffbd2e; border: 0.5px solid #dea123; }
+.dot-max { background-color: #27c93f; border: 0.5px solid #1aab29; }
+.window-title {
+  font-size: 6px;
+  font-weight: 400;
+  color: #7c84a4;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  text-align: center;
+}
+.window-title small {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: #f8e878;
+}
+
+.screen { display: none; }
+.screen.active { display: flex; flex-direction: column; gap: 16px; }
+
+@keyframes dendyBlink {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
+@keyframes dendyScan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+
+#screen-menu {
+  background: #0b0c16;
+  padding: 18px 12px 22px;
+  box-shadow:
+    0 0 0 3px #1a1c2c,
+    0 0 0 6px #fc7460,
+    0 0 0 9px #0b0c16;
+  position: relative;
+  overflow: hidden;
+}
+#screen-menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 3px);
+  animation: dendyScan 0.4s linear infinite;
+}
+.dendy-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: #fc7460;
+  text-align: center;
+  line-height: 1.8;
+  margin: 4px 0 6px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 2px 2px 0 #000;
+}
+.dendy-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #f8e878;
+  text-align: center;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+  animation: dendyBlink 1.1s steps(1) infinite;
+}
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+.menu-btn {
+  width: 100%;
+  padding: 12px 10px 12px 28px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #f8f8f8;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  transition: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  image-rendering: pixelated;
+}
+.menu-btn::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  width: 10px;
+  height: 10px;
+  background: #fc7460;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  opacity: 0;
+}
+.menu-btn:hover::before,
+.menu-btn:focus::before,
+.menu-btn.active-item::before { opacity: 1; }
+.menu-btn:hover,
+.menu-btn:focus {
+  color: #f8e878;
+  outline: none;
+  background: rgba(252, 116, 96, 0.12);
+}
+.menu-btn:active {
+  transform: none;
+  color: #88c070;
+  background: rgba(136, 192, 112, 0.15);
+}
+.menu-btn.purple-btn {
+  background: transparent;
+  box-shadow: none;
+  color: #b8f8b8;
+}
+
+.jim-ticker {
+  position: relative;
+  z-index: 1;
+  margin-top: 12px;
+  padding: 10px 8px;
+  background: #143c18;
+  border: 3px solid #f8e878;
+  box-shadow: 3px 3px 0 #000;
+  min-height: 36px;
+}
+.jim-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  line-height: 1.75;
+  color: #f8e878;
+  word-break: break-word;
+}
+
+
+.dashboard {
+  position: relative;
+  z-index: 1;
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.dash-card {
+  background: #14162a;
+  border: 2px solid #4a5568;
+  padding: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+.dash-card:active { border-color: #f8e878; }
+.dash-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: #88c070;
+  margin-bottom: 6px;
+}
+.dash-vol {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: #f8f8f8;
+}
+.dash-pct, .dash-mass {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: #3cbcfc;
+  margin-top: 4px;
+}
+.dash-mass { color: #fc7460; }
+.dash-bar-track {
+  margin-top: 6px;
+  height: 6px;
+  background: #2d3340;
+  border: 1px solid #000;
+}
+.dash-bar-fill {
+  height: 100%;
+  width: 0;
+  background: repeating-linear-gradient(90deg, #88c070 0 5px, transparent 5px 7px);
+}
+.dash-card.warn-high { border-color: #fc7460; }
+
+/* Python IDLE notepad */
+.idle-win {
+  background: #f0f0f0;
+  border: 1px solid #7a7a7a;
+  box-shadow: 2px 2px 0 #404040;
+  font-family: Tahoma, "Segoe UI", sans-serif;
+}
+.idle-date {
+  background: #f0f0f0;
+  border-bottom: 1px solid #808080;
+  padding: 6px 10px;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 12px;
+  color: #000080;
+  text-align: center;
+}
+.idle-pad {
+  width: 100%;
+  min-height: 280px;
+  border: none;
+  resize: vertical;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: #000080;
+  font-family: 'JetBrains Mono', Consolas, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  outline: none;
+}
+.idle-status {
+  background: #f0f0f0;
+  border-top: 1px solid #808080;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+}
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--card-border);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+}
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+label { font-size: 0.78rem; font-weight: 600; color: #48484a; margin-bottom: 6px; display: block; }
+.input-group { display: flex; gap: 8px; align-items: center; }
+
+input[type="number"], input[type="text"] {
+  flex: 1;
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 12px 12px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input:focus {
+  background: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+}
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.unit { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 600; color: var(--muted); min-width: 40px; }
+
+.btn {
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn:active { transform: scale(0.97); }
+.sign-btn { width: 44px; height: 42px; background: #e5e5ea; color: var(--text); font-size: 1.2rem; }
+.sign-btn.negative { background: rgba(255, 59, 48, 0.15); color: var(--danger); }
+.clear-btn { width: 100%; padding: 10px; margin-top: 12px; background: #e5e5ea; color: #48484a; font-size: 0.78rem; }
+.clear-btn:hover { background: #d1d1d6; }
+
+.result {
+  margin-top: 14px;
+  padding: 14px;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  display: none;
+}
+.result.show { display: block; }
+.result .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.82rem; color: var(--muted); border-bottom: 1px dashed #e5e5ea; }
+.result .row:last-of-type { border-bottom: none; }
+.result .row b { color: var(--text); font-weight: 600; }
+.result .final { margin-top: 10px; text-align: center; padding-top: 8px; }
+.result .final .val { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); }
+.result .final .lbl { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+
+.barrel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+}
+.barrel {
+  position: relative;
+  width: var(--barrel-w);
+  height: var(--barrel-h);
+  background: #e5e5ea;
+  border-radius: calc(var(--barrel-h) / 2);
+  border: 2px solid #c7c7cc;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+}
+.liquid {
+  position: absolute;
+  bottom: 2px; left: 6px; right: 6px;
+  height: 0%;
+  max-height: calc(100% - 4px);
+  border-radius: 2px 2px 16px 16px;
+  transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.liquid-spv { background: linear-gradient(180deg, #007aff 0%, #004085 100%); }
+.liquid-cond { background: linear-gradient(180deg, #ff9500 0%, #c67300 100%); }
+.liquid-meth { background: linear-gradient(180deg, #af52de 0%, #6b248a 100%); }
+
+.barrel-readout { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.level-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #ffffff;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  color: var(--text);
+}
+.mass-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(255, 59, 48, 0.1);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  color: var(--danger);
+  display: none;
+}
+.mass-label.show { display: inline-block; }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  margin-top: 10px;
+  text-align: center;
+}
+.info-item .val { font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 700; color: var(--text); }
+.info-item .lbl { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+.fill-pct { grid-column: 1 / -1; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+.mass-tons { grid-column: 1 / -1; font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; color: var(--danger); margin-top: 2px; }
+.hint { font-size: 0.7rem; color: var(--muted); line-height: 1.3; margin-top: 4px; text-align: center; }
+.error { display: none; background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.2); color: var(--danger); padding: 10px; border-radius: var(--radius-md); font-size: 0.8rem; margin-top: 10px; }
+.error.show { display: block; }
+.footer-note { text-align: center; color: var(--muted); font-size: 0.68rem; margin-top: 8px; }
+
+.chart-card { margin-bottom: 4px; }
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.chart-head b { font-size: 0.92rem; }
+.chart-head span { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+.chart-svg { width: 100%; height: 160px; display: block; background: #f3f6fa; border-radius: 10px; }
+.chart-svg .axis { stroke: #c5c9d1; stroke-width: 1; }
+.chart-svg .grid { stroke: #e6e9ee; stroke-width: 1; }
+.chart-svg .curve { fill: none; stroke: #229ED9; stroke-width: 2.2; stroke-linejoin: round; }
+.chart-svg .fill { fill: rgba(34, 158, 217, 0.12); }
+.chart-svg .dot { fill: #c41e3a; stroke: #fff; stroke-width: 1.5; }
+.chart-svg .lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; fill: #86868b; }
+
+.time-to-full {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 149, 0, 0.08);
+  border: 1px solid rgba(255, 149, 0, 0.25);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.time-to-full .ttf-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #c67300;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+.time-to-full .ttf-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #c67300;
+}
+.time-to-full .ttf-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.rate-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.rate-btn {
+  flex: 1;
+  padding: 8px 4px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: #eef0f3;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.rate-btn.active {
+  background: rgba(255, 149, 0, 0.2);
+  border-color: #ff9500;
+  color: #c67300;
+}
+
+
+.time-to-full.spv-ttf {
+  background: rgba(0, 122, 255, 0.08);
+  border-color: rgba(0, 122, 255, 0.25);
+}
+.time-to-full.spv-ttf .ttf-label,
+.time-to-full.spv-ttf .ttf-val {
+  color: #007aff;
+}
+
+
+/* ===== SUB-TABS (Метанол) ===== */
+.sub-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.sub-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+.sub-tab.active {
+  background: rgba(175, 82, 222, 0.12);
+  border-color: #af52de;
+  color: #af52de;
+}
+.sub-panel { display: none; }
+.sub-panel.active { display: block; }
+
+
+#subTab3.active, #subTab4.active, #subTab5.active, #subTab12.active {
+  background: rgba(255, 149, 0, 0.15);
+  border-color: #ff9500;
+  color: #c67300;
+}
+
+
+/* ===== MOBILE TOUCH OPTIMIZATION — layout/functionality unchanged ===== */
+@media (max-width: 700px) {
+  .menu-list { gap: 8px; }
+
+  .menu-btn {
+    min-height: 48px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .btn { min-height: 48px; }
+  .sign-btn { width: 48px; height: 48px; min-width: 48px; }
+  .clear-btn { min-height: 48px; padding: 10px 12px; }
+
+  .back-btn { min-height: 48px; padding: 10px 14px; }
+
+  input[type="number"],
+  input[type="text"] {
+    min-height: 50px;
+    padding: 12px 14px;
+    font-size: 17px;
+  }
+
+  /* Overrides the few inline compact input styles without changing logic. */
+  .input-group input[type="number"],
+  .input-group input[type="text"] { min-height: 50px !important; }
+
+  .sub-tabs { gap: 8px; }
+  .sub-tab { min-height: 48px; padding: 10px 8px; }
+
+  .result .final .val { font-size: 32px; }
+  .result .final .lbl { font-size: 0.8rem; }
+
+  .info-item .val { font-size: 1.35rem; }
+  .fill-pct { font-size: 1rem; }
+
+  .field { margin-bottom: 16px; }
+  label { font-size: 0.82rem; margin-bottom: 7px; }
+}
+
+/* === ТІЛЬКИ: великі та контрастні перемикачі ємностей === */
+.sub-tabs {
+  gap: 8px !important;
+}
+.sub-tabs button {
+  min-height: 48px !important;
+  padding: 10px 16px !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  border-width: 2px !important;
+}
+.sub-tabs button.active {
+  font-weight: 900 !important;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="mac-window-bar">
+    <div class="mac-dots">
+      <div class="dot dot-close"></div>
+      <div class="dot dot-min"></div>
+      <div class="dot dot-max"></div>
+    </div>
+    <button type="button" class="window-title" onclick="openScreen('screen-menu')">ОБЛІКОВИЙ КАЛЬКУЛЯТОР<small>UKPG RESET</small></button>
+    <div style="width: 40px;"></div>
+  </div>
+
+  <!-- ГОЛОВНЕ МЕНЮ + ДАШБОРД -->
+  <div id="screen-menu" class="screen active">
+    <div class="dendy-title">UKPG<br>SELECT GAME</div>
+    <div class="dendy-sub">PUSH START</div>
+    <div class="nav-menu">
+      <button class="menu-btn active-item" onclick="openScreen('screen-spv')">1  SPV  E2</button>
+      <button class="menu-btn" onclick="openScreen('screen-condensate')">2  CONDENSATE</button>
+      <button class="menu-btn" onclick="openScreen('screen-methanol')">3  METHANOL</button>
+      <button class="menu-btn purple-btn" onclick="openScreen('screen-dew')">4  DEW POINT</button>
+      <button class="menu-btn" onclick="openScreen('screen-notes')">5  NOTES.PY</button>
+    </div>
+    <div class="jim-ticker"><div class="jim-text" id="jimText"></div></div>
+    <div class="dashboard" id="dashboard">
+      <div class="dash-card" id="dashCard2" onclick="openScreen('screen-spv')">
+        <div class="dash-title">E2 SPV</div>
+        <div class="dash-vol" id="dashVol2">—</div>
+        <div class="dash-pct" id="dashPct2"></div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" id="dashBar2"></div></div>
+      </div>
+      <div class="dash-card" id="dashCard3" onclick="openScreen('screen-condensate'); switchCondTab('3');">
+        <div class="dash-title">E3 COND</div>
+        <div class="dash-vol" id="dashVol3">—</div>
+        <div class="dash-pct" id="dashPct3"></div>
+        <div class="dash-mass" id="dashMass3"></div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" id="dashBar3"></div></div>
+      </div>
+      <div class="dash-card" id="dashCard4" onclick="openScreen('screen-condensate'); switchCondTab('4');">
+        <div class="dash-title">E4 COND</div>
+        <div class="dash-vol" id="dashVol4">—</div>
+        <div class="dash-pct" id="dashPct4"></div>
+        <div class="dash-mass" id="dashMass4"></div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" id="dashBar4"></div></div>
+      </div>
+      <div class="dash-card" id="dashCard5" onclick="openScreen('screen-condensate'); switchCondTab('5');">
+        <div class="dash-title">E5 COND</div>
+        <div class="dash-vol" id="dashVol5">—</div>
+        <div class="dash-pct" id="dashPct5"></div>
+        <div class="dash-mass" id="dashMass5"></div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" id="dashBar5"></div></div>
+      </div>
+      <div class="dash-card" id="dashCard12" onclick="openScreen('screen-condensate'); switchCondTab('12');">
+        <div class="dash-title">E12 COND</div>
+        <div class="dash-vol" id="dashVol12">—</div>
+        <div class="dash-pct" id="dashPct12"></div>
+        <div class="dash-mass" id="dashMass12"></div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" id="dashBar12"></div></div>
+      </div>
+      <div class="dash-card" id="dashCardM1" onclick="openScreen('screen-methanol'); switchMethTab('M1');">
+        <div class="dash-title">EM1 METH</div>
+        <div class="dash-vol" id="dashVolM1">—</div>
+        <div class="dash-pct" id="dashPctM1"></div>
+        <div class="dash-mass" id="dashMassM1"></div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" id="dashBarM1"></div></div>
+      </div>
+      <div class="dash-card" id="dashCardM2" onclick="openScreen('screen-methanol'); switchMethTab('M2');">
+        <div class="dash-title">EM2 METH</div>
+        <div class="dash-vol" id="dashVolM2">—</div>
+        <div class="dash-pct" id="dashPctM2"></div>
+        <div class="dash-mass" id="dashMassM2"></div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" id="dashBarM2"></div></div>
+      </div>
+      <div class="dash-card" onclick="openScreen('screen-dew')">
+        <div class="dash-title">DEW</div>
+        <div class="dash-vol" id="dashDew">—</div>
+        <div class="dash-pct">C</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-notes" class="screen">
+    <div class="idle-win">
+      <div class="idle-date" id="notesDate"></div>
+      <textarea id="notesPad" class="idle-pad" spellcheck="false" placeholder="# нотатки"></textarea>
+      <div class="idle-status">
+        <span id="notesPos">Ln: 1  Col: 1</span>
+        <span>UTF-8</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- СПВ — Є2 -->
+  <div id="screen-spv" class="screen">
+       <div class="card">
+      <div class="section-title">Резервуар Є2 (СПВ)</div>
+      <div class="barrel-wrap">
+        <div class="barrel">
+          <div class="liquid liquid-spv" id="liquid2"></div>
+        </div>
+        <div class="barrel-readout">
+          <span class="level-label" id="levelLabel2">0.000 м³</span>
+        </div>
+        <p class="hint">Калібрувальна таблиця — точний об'єм за рівнем</p>
+      </div>
+      <div class="field">
+        <label>Рівень (мм)</label>
+        <div class="input-group">
+          <input type="text" id="hInput2" placeholder="0" inputmode="numeric" enterkeyhint="done">
+          <span class="unit">мм</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Об'єм (м³)</label>
+        <div class="input-group">
+          <input type="text" id="volInput2" placeholder="0.000" inputmode="decimal" enterkeyhint="done">
+          <span class="unit">м³</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <label style="font-size:0.72rem">Середній видобуток</label>
+        <div class="input-group" style="max-width:160px">
+          <input type="text" id="rateInput2" placeholder="6.5" inputmode="decimal" enterkeyhint="done" value=""
+                 style="padding:8px 10px; font-size:14px">
+          <span class="unit" style="font-size:0.75rem; min-width:48px">м³/год</span>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="val" id="dispVol2">0.000</div>
+          <div class="lbl">Об'єм, м³</div>
+        </div>
+        <div class="info-item">
+          <div class="val" id="dispH2">0</div>
+          <div class="lbl">Рівень, мм</div>
+        </div>
+        <div class="fill-pct" id="dispPct2">0 %</div>
+      </div>
+      <div class="time-to-full" id="timeToFull2" class="spv-ttf" style="display:none">
+        <div class="ttf-label">До повного</div>
+        <div class="ttf-val" id="ttfVal2">—</div>
+        <div class="ttf-sub" id="ttfSub2"></div>
+      </div>
+      <button type="button" class="btn clear-btn" onclick="clearTank('2')">Очистити Є2</button>
+    </div>
+  </div>
+
+  <!-- КОНДЕНСАТ — Є3 / Є4 / Є5 / Є12 (підвкладки) -->
+  <div id="screen-condensate" class="screen">
+   
+    <div class="sub-tabs">
+      <button type="button" class="sub-tab active" id="subTab3" onclick="switchCondTab('3')" style="--accent-local:#ff9500">Є3</button>
+      <button type="button" class="sub-tab" id="subTab4" onclick="switchCondTab('4')">Є4</button>
+      <button type="button" class="sub-tab" id="subTab5" onclick="switchCondTab('5')">Є5</button>
+      <button type="button" class="sub-tab" id="subTab12" onclick="switchCondTab('12')">Є12</button>
+    </div>
+
+    <!-- ПАНЕЛЬ Є3 -->
+    <div class="sub-panel active" id="panel3">
+      <div class="card">
+        <div class="section-title">Резервуар Є3 (Конденсат)</div>
+        <div class="barrel-wrap">
+          <div class="barrel">
+            <div class="liquid liquid-cond" id="liquid3"></div>
+          </div>
+          <div class="barrel-readout">
+            <span class="level-label" id="levelLabel3">0.000 м³</span>
+            <span class="mass-label" id="massLabel3">— т</span>
+          </div>
+          <p class="hint">Калібрувальна таблиця + густина → маса</p>
+        </div>
+        <div class="field">
+          <label>Рівень (мм)</label>
+          <div class="input-group">
+            <input type="text" id="hInput3" placeholder="0" inputmode="numeric" enterkeyhint="done">
+            <span class="unit">мм</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Густина (т/м³)</label>
+          <div class="input-group">
+            <input type="text" id="densInput3" placeholder="0.796" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">т/м³</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Об'єм (м³)</label>
+          <div class="input-group">
+            <input type="text" id="volInput3" placeholder="0.000" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">м³</span>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label style="font-size:0.72rem">Середній видобуток</label>
+          <div class="input-group" style="max-width:160px">
+            <input type="text" id="rateInput3" placeholder="6.5" inputmode="decimal" enterkeyhint="done" value=""
+                   style="padding:8px 10px; font-size:14px">
+            <span class="unit" style="font-size:0.75rem; min-width:48px">м³/год</span>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="val" id="dispVol3">0.000</div>
+            <div class="lbl">м³</div>
+          </div>
+          <div class="info-item">
+            <div class="val" id="dispH3">0</div>
+            <div class="lbl">мм</div>
+          </div>
+          <div class="fill-pct" id="dispPct3">0 %</div>
+          <div class="mass-tons" id="dispMass3">— т</div>
+        </div>
+        <div class="time-to-full" id="timeToFull3" style="display:none">
+          <div class="ttf-label">До повного</div>
+          <div class="ttf-val" id="ttfVal3">—</div>
+          <div class="ttf-sub" id="ttfSub3"></div>
+        </div>
+        <button type="button" class="btn clear-btn" onclick="clearTank('3')">Очистити Є3</button>
+      </div>
+    </div>
+
+    <!-- ПАНЕЛЬ Є4 -->
+    <div class="sub-panel" id="panel4">
+      <div class="card">
+        <div class="section-title">Резервуар Є4 (Конденсат)</div>
+        <div class="barrel-wrap">
+          <div class="barrel">
+            <div class="liquid liquid-cond" id="liquid4"></div>
+          </div>
+          <div class="barrel-readout">
+            <span class="level-label" id="levelLabel4">0.000 м³</span>
+            <span class="mass-label" id="massLabel4">— т</span>
+          </div>
+          <p class="hint">Калібрувальна таблиця + густина → маса</p>
+        </div>
+        <div class="field">
+          <label>Рівень (мм)</label>
+          <div class="input-group">
+            <input type="text" id="hInput4" placeholder="0" inputmode="numeric" enterkeyhint="done">
+            <span class="unit">мм</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Густина (т/м³)</label>
+          <div class="input-group">
+            <input type="text" id="densInput4" placeholder="0.796" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">т/м³</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Об'єм (м³)</label>
+          <div class="input-group">
+            <input type="text" id="volInput4" placeholder="0.000" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">м³</span>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label style="font-size:0.72rem">Середній видобуток</label>
+          <div class="input-group" style="max-width:160px">
+            <input type="text" id="rateInput4" placeholder="6.5" inputmode="decimal" enterkeyhint="done" value=""
+                   style="padding:8px 10px; font-size:14px">
+            <span class="unit" style="font-size:0.75rem; min-width:48px">м³/год</span>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="val" id="dispVol4">0.000</div>
+            <div class="lbl">м³</div>
+          </div>
+          <div class="info-item">
+            <div class="val" id="dispH4">0</div>
+            <div class="lbl">мм</div>
+          </div>
+          <div class="fill-pct" id="dispPct4">0 %</div>
+          <div class="mass-tons" id="dispMass4">— т</div>
+        </div>
+        <div class="time-to-full" id="timeToFull4" style="display:none">
+          <div class="ttf-label">До повного</div>
+          <div class="ttf-val" id="ttfVal4">—</div>
+          <div class="ttf-sub" id="ttfSub4"></div>
+        </div>
+        <button type="button" class="btn clear-btn" onclick="clearTank('4')">Очистити Є4</button>
+      </div>
+    </div>
+
+    <!-- ПАНЕЛЬ Є5 -->
+    <div class="sub-panel" id="panel5">
+      <div class="card">
+        <div class="section-title">Резервуар Є5 (Конденсат)</div>
+        <div class="barrel-wrap">
+          <div class="barrel">
+            <div class="liquid liquid-cond" id="liquid5"></div>
+          </div>
+          <div class="barrel-readout">
+            <span class="level-label" id="levelLabel5">0.000 м³</span>
+            <span class="mass-label" id="massLabel5">— т</span>
+          </div>
+          <p class="hint">Калібрувальна таблиця + густина → маса</p>
+        </div>
+        <div class="field">
+          <label>Рівень (мм)</label>
+          <div class="input-group">
+            <input type="text" id="hInput5" placeholder="0" inputmode="numeric" enterkeyhint="done">
+            <span class="unit">мм</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Густина (т/м³)</label>
+          <div class="input-group">
+            <input type="text" id="densInput5" placeholder="0.796" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">т/м³</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Об'єм (м³)</label>
+          <div class="input-group">
+            <input type="text" id="volInput5" placeholder="0.000" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">м³</span>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label style="font-size:0.72rem">Середній видобуток</label>
+          <div class="input-group" style="max-width:160px">
+            <input type="text" id="rateInput5" placeholder="6.5" inputmode="decimal" enterkeyhint="done" value=""
+                   style="padding:8px 10px; font-size:14px">
+            <span class="unit" style="font-size:0.75rem; min-width:48px">м³/год</span>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="val" id="dispVol5">0.000</div>
+            <div class="lbl">м³</div>
+          </div>
+          <div class="info-item">
+            <div class="val" id="dispH5">0</div>
+            <div class="lbl">мм</div>
+          </div>
+          <div class="fill-pct" id="dispPct5">0 %</div>
+          <div class="mass-tons" id="dispMass5">— т</div>
+        </div>
+        <div class="time-to-full" id="timeToFull5" style="display:none">
+          <div class="ttf-label">До повного</div>
+          <div class="ttf-val" id="ttfVal5">—</div>
+          <div class="ttf-sub" id="ttfSub5"></div>
+        </div>
+        <button type="button" class="btn clear-btn" onclick="clearTank('5')">Очистити Є5</button>
+      </div>
+    </div>
+
+    <!-- ПАНЕЛЬ Є12 -->
+    <div class="sub-panel" id="panel12">
+      <div class="card">
+        <div class="section-title">Резервуар Є12 (Конденсат)</div>
+        <div class="barrel-wrap">
+          <div class="barrel">
+            <div class="liquid liquid-cond" id="liquid12"></div>
+          </div>
+          <div class="barrel-readout">
+            <span class="level-label" id="levelLabel12">0.000 м³</span>
+            <span class="mass-label" id="massLabel12">— т</span>
+          </div>
+          <p class="hint">Калібрувальна таблиця + густина → маса</p>
+        </div>
+        <div class="field">
+          <label>Рівень (мм)</label>
+          <div class="input-group">
+            <input type="text" id="hInput12" placeholder="0" inputmode="numeric" enterkeyhint="done">
+            <span class="unit">мм</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Густина (т/м³)</label>
+          <div class="input-group">
+            <input type="text" id="densInput12" placeholder="0.796" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">т/м³</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Об'єм (м³)</label>
+          <div class="input-group">
+            <input type="text" id="volInput12" placeholder="0.000" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">м³</span>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label style="font-size:0.72rem">Середній видобуток</label>
+          <div class="input-group" style="max-width:160px">
+            <input type="text" id="rateInput12" placeholder="6.5" inputmode="decimal" enterkeyhint="done" value=""
+                   style="padding:8px 10px; font-size:14px">
+            <span class="unit" style="font-size:0.75rem; min-width:48px">м³/год</span>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="val" id="dispVol12">0.000</div>
+            <div class="lbl">м³</div>
+          </div>
+          <div class="info-item">
+            <div class="val" id="dispH12">0</div>
+            <div class="lbl">мм</div>
+          </div>
+          <div class="fill-pct" id="dispPct12">0 %</div>
+          <div class="mass-tons" id="dispMass12">— т</div>
+        </div>
+        <div class="time-to-full" id="timeToFull12" style="display:none">
+          <div class="ttf-label">До повного</div>
+          <div class="ttf-val" id="ttfVal12">—</div>
+          <div class="ttf-sub" id="ttfSub12"></div>
+        </div>
+        <button type="button" class="btn clear-btn" onclick="clearTank('12')">Очистити Є12</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- МЕТАНОЛ — ЄМ1 / ЄМ2 (підвкладки) -->
+  <div id="screen-methanol" class="screen">
+   
+    <div class="sub-tabs">
+      <button type="button" class="sub-tab active" id="subTabM1" onclick="switchMethTab('M1')">ЄМ1</button>
+      <button type="button" class="sub-tab" id="subTabM2" onclick="switchMethTab('M2')">ЄМ2</button>
+    </div>
+
+    <!-- ПАНЕЛЬ ЄМ1 -->
+    <div class="sub-panel active" id="panelM1">
+      <div class="card">
+        <div class="section-title">Резервуар ЄМ1 (Метанол)</div>
+        <div class="barrel-wrap">
+          <div class="barrel">
+            <div class="liquid liquid-meth" id="liquidM1"></div>
+          </div>
+          <div class="barrel-readout">
+            <span class="level-label" id="levelLabelM1">0.000 м³</span>
+            <span class="mass-label" id="massLabelM1">— т</span>
+          </div>
+          <p class="hint">Калібрувальна таблиця — точний об'єм за рівнем</p>
+        </div>
+        <div class="field">
+          <label>Рівень (мм)</label>
+          <div class="input-group">
+            <input type="text" id="hInputM1" placeholder="0" inputmode="numeric" enterkeyhint="done">
+            <span class="unit">мм</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Густина (т/м³)</label>
+          <div class="input-group">
+            <input type="text" id="densInputM1" placeholder="0.792" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">т/м³</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Об'єм (м³)</label>
+          <div class="input-group">
+            <input type="text" id="volInputM1" placeholder="0.000" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">м³</span>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="val" id="dispVolM1">0.000</div>
+            <div class="lbl">м³</div>
+          </div>
+          <div class="info-item">
+            <div class="val" id="dispMassM1">—</div>
+            <div class="lbl">Маса, т</div>
+          </div>
+          <div class="fill-pct" id="dispPctM1">0 %</div>
+        </div>
+        <button type="button" class="btn clear-btn" onclick="clearTank('M1')">Очистити ЄМ1</button>
+      </div>
+    </div>
+
+    <!-- ПАНЕЛЬ ЄМ2 -->
+    <div class="sub-panel" id="panelM2">
+      <div class="card">
+        <div class="section-title">Резервуар ЄМ2 (Метанол)</div>
+        <div class="barrel-wrap">
+          <div class="barrel">
+            <div class="liquid liquid-meth" id="liquidM2"></div>
+          </div>
+          <div class="barrel-readout">
+            <span class="level-label" id="levelLabelM2">0.000 м³</span>
+            <span class="mass-label" id="massLabelM2">— т</span>
+          </div>
+          <p class="hint">Калібрувальна таблиця — точний об'єм за рівнем</p>
+        </div>
+        <div class="field">
+          <label>Рівень (мм)</label>
+          <div class="input-group">
+            <input type="text" id="hInputM2" placeholder="0" inputmode="numeric" enterkeyhint="done">
+            <span class="unit">мм</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Густина (т/м³)</label>
+          <div class="input-group">
+            <input type="text" id="densInputM2" placeholder="0.792" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">т/м³</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Об'єм (м³)</label>
+          <div class="input-group">
+            <input type="text" id="volInputM2" placeholder="0.000" inputmode="decimal" enterkeyhint="done">
+            <span class="unit">м³</span>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="val" id="dispVolM2">0.000</div>
+            <div class="lbl">м³</div>
+          </div>
+          <div class="info-item">
+            <div class="val" id="dispMassM2">—</div>
+            <div class="lbl">Маса, т</div>
+          </div>
+          <div class="fill-pct" id="dispPctM2">0 %</div>
+        </div>
+        <button type="button" class="btn clear-btn" onclick="clearTank('M2')">Очистити ЄМ2</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ТОЧКА РОСИ -->
+  <div id="screen-dew" class="screen">
+       <div class="card">
+      <div class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg>
+        Точка роси (СОУ 09.1-30019775-186:2019)
+      </div>
+      <div class="field">
+        <label for="press">Тиск у колекторі (напр. 46 = 4,6 МПа)</label>
+        <input type="text" id="press" placeholder="46" inputmode="decimal" enterkeyhint="done">
+        <div class="hint" style="text-align:left">Перші дві цифри = МПа×10 (41…50). Округлюється до найближчого стовпця.</div>
+      </div>
+      <div class="field">
+        <label for="dew">Виміряна точка роси, °C</label>
+        <div class="input-group">
+          <button type="button" class="btn sign-btn negative" id="signToggle">−</button>
+          <input type="text" id="dew" placeholder="5.9" inputmode="decimal" enterkeyhint="done">
+        </div>
+        <div class="hint" style="text-align:left">Кнопка ± змінює знак (за замовчуванням від'ємний).</div>
+      </div>
+      <div class="error" id="err"></div>
+      <div class="result" id="result">
+        <div class="row"><span>Стовпець тиску</span><b id="rPress">—</b></div>
+        <div class="row"><span>Точка з таблиці</span><b id="rTableVal">—</b></div>
+        <div class="row"><span>Вологовміст</span><b id="rVlaga">—</b></div>
+        <div class="final">
+          <div class="lbl">Приведена т.р. (3,92 МПа)</div>
+          <div class="val" id="rReduced">— °C</div>
+        </div>
+      </div>
+      <button type="button" class="btn clear-btn" id="clearDew">Очистити Точку роси</button>
+      <p class="footer-note">Дані таблиці вбудовані — інтернет не потрібен</p>
+    </div>
+  </div>
+</div>
+
+<script src="data/e2.js"></script>
+<script src="data/e3.js"></script>
+<script src="data/e4.js"></script>
+<script src="data/e5.js"></script>
+<script src="data/e12.js"></script>
+<script src="data/em1.js"></script>
+<script src="data/em2.js"></script>
+<script>
+/* ==================== ДАНІ З ОРИГІНАЛЬНОГО КАЛЬКУЛЯТОРА ==================== */
+;
+;
+const DATA = {"pressures": [5.0, 4.9, 4.8, 4.7, 4.6, 4.5, 4.4, 4.3, 4.2, 4.1], "rows": [{"vologovmist": 20.57, "values": {"5.0": -17.5, "4.9": -17.7, "4.8": -17.9, "4.7": -18.2, "4.6": -18.4, "4.5": -18.6, "4.4": -18.8, "4.3": -19.0, "4.2": -19.2, "4.1": -19.5}, "reduced": -20.0}, {"vologovmist": 21.71, "values": {"5.0": -17.0, "4.9": -17.2, "4.8": -17.4, "4.7": -17.7, "4.6": -17.9, "4.5": -18.1, "4.4": -18.3, "4.3": -18.5, "4.2": -18.7, "4.1": -19.0}, "reduced": -19.5}, {"vologovmist": 22.85, "values": {"5.0": -16.5, "4.9": -16.7, "4.8": -16.9, "4.7": -17.2, "4.6": -17.4, "4.5": -17.6, "4.4": -17.8, "4.3": -18.0, "4.2": -18.2, "4.1": -18.5}, "reduced": -19.0}, {"vologovmist": 23.99, "values": {"5.0": -16.0, "4.9": -16.2, "4.8": -16.4, "4.7": -16.7, "4.6": -16.9, "4.5": -17.1, "4.4": -17.3, "4.3": -17.5, "4.2": -17.7, "4.1": -18.0}, "reduced": -18.5}, {"vologovmist": 25.13, "values": {"5.0": -15.5, "4.9": -15.7, "4.8": -15.9, "4.7": -16.2, "4.6": -16.4, "4.5": -16.6, "4.4": -16.8, "4.3": -17.0, "4.2": -17.2, "4.1": -17.5}, "reduced": -18.0}, {"vologovmist": 26.5, "values": {"5.0": -15.0, "4.9": -15.2, "4.8": -15.4, "4.7": -15.7, "4.6": -15.9, "4.5": -16.1, "4.4": -16.3, "4.3": -16.5, "4.2": -16.7, "4.1": -17.0}, "reduced": -17.5}, {"vologovmist": 27.86, "values": {"5.0": -14.5, "4.9": -14.7, "4.8": -14.9, "4.7": -15.1, "4.6": -15.3, "4.5": -15.6, "4.4": -15.8, "4.3": -16.0, "4.2": -16.2, "4.1": -16.5}, "reduced": -17.0}, {"vologovmist": 29.23, "values": {"5.0": -14.0, "4.9": -14.2, "4.8": -14.4, "4.7": -14.6, "4.6": -14.8, "4.5": -15.1, "4.4": -15.3, "4.3": -15.5, "4.2": -15.7, "4.1": -16.0}, "reduced": -16.5}, {"vologovmist": 30.6, "values": {"5.0": -13.5, "4.9": -13.7, "4.8": -13.9, "4.7": -14.1, "4.6": -14.3, "4.5": -14.6, "4.4": -14.8, "4.3": -15.0, "4.2": -15.2, "4.1": -15.5}, "reduced": -16.0}, {"vologovmist": 32.23, "values": {"5.0": -13.0, "4.9": -13.2, "4.8": -13.4, "4.7": -13.6, "4.6": -13.8, "4.5": -14.1, "4.4": -14.3, "4.3": -14.5, "4.2": -14.7, "4.1": -15.0}, "reduced": -15.5}, {"vologovmist": 33.86, "values": {"5.0": -12.5, "4.9": -12.7, "4.8": -12.9, "4.7": -13.1, "4.6": -13.3, "4.5": -13.6, "4.4": -13.8, "4.3": -14.0, "4.2": -14.2, "4.1": -14.5}, "reduced": -15.0}, {"vologovmist": 35.49, "values": {"5.0": -12.0, "4.9": -12.2, "4.8": -12.4, "4.7": -12.6, "4.6": -12.8, "4.5": -13.1, "4.4": -13.3, "4.3": -13.5, "4.2": -13.7, "4.1": -14.0}, "reduced": -14.5}, {"vologovmist": 37.12, "values": {"5.0": -11.5, "4.9": -11.7, "4.8": -11.9, "4.7": -12.1, "4.6": -12.3, "4.5": -12.6, "4.4": -12.8, "4.3": -13.0, "4.2": -13.2, "4.1": -13.5}, "reduced": -14.0}, {"vologovmist": 39.06, "values": {"5.0": -11.0, "4.9": -11.2, "4.8": -11.4, "4.7": -11.6, "4.6": -11.8, "4.5": -12.1, "4.4": -12.3, "4.3": -12.5, "4.2": -12.7, "4.1": -13.0}, "reduced": -13.5}, {"vologovmist": 41.0, "values": {"5.0": -10.5, "4.9": -10.7, "4.8": -10.9, "4.7": -11.1, "4.6": -11.3, "4.5": -11.6, "4.4": -11.8, "4.3": -12.0, "4.2": -12.2, "4.1": -12.5}, "reduced": -13.0}, {"vologovmist": 42.94, "values": {"5.0": -10.0, "4.9": -10.2, "4.8": -10.4, "4.7": -10.6, "4.6": -10.8, "4.5": -11.1, "4.4": -11.3, "4.3": -11.5, "4.2": -11.7, "4.1": -12.0}, "reduced": -12.5}, {"vologovmist": 44.88, "values": {"5.0": -9.5, "4.9": -9.7, "4.8": -9.9, "4.7": -10.1, "4.6": -10.3, "4.5": -10.6, "4.4": -10.8, "4.3": -11.0, "4.2": -11.2, "4.1": -11.5}, "reduced": -12.0}, {"vologovmist": 47.18, "values": {"5.0": -9.0, "4.9": -9.2, "4.8": -9.4, "4.7": -9.6, "4.6": -9.8, "4.5": -10.1, "4.4": -10.3, "4.3": -10.5, "4.2": -10.7, "4.1": -11.0}, "reduced": -11.5}, {"vologovmist": 49.48, "values": {"5.0": -8.5, "4.9": -8.7, "4.8": -8.9, "4.7": -9.1, "4.6": -9.3, "4.5": -9.6, "4.4": -9.8, "4.3": -10.0, "4.2": -10.2, "4.1": -10.5}, "reduced": -11.0}, {"vologovmist": 51.77, "values": {"5.0": -8.0, "4.9": -8.2, "4.8": -8.4, "4.7": -8.6, "4.6": -8.8, "4.5": -9.1, "4.4": -9.3, "4.3": -9.5, "4.2": -9.7, "4.1": -10.0}, "reduced": -10.5}, {"vologovmist": 54.07, "values": {"5.0": -7.5, "4.9": -7.7, "4.8": -7.9, "4.7": -8.1, "4.6": -8.3, "4.5": -8.6, "4.4": -8.8, "4.3": -9.0, "4.2": -9.2, "4.1": -9.5}, "reduced": -10.0}, {"vologovmist": 56.79, "values": {"5.0": -7.0, "4.9": -7.2, "4.8": -7.4, "4.7": -7.6, "4.6": -7.8, "4.5": -8.1, "4.4": -8.3, "4.3": -8.5, "4.2": -8.7, "4.1": -9.0}, "reduced": -9.5}, {"vologovmist": 59.51, "values": {"5.0": -6.4, "4.9": -6.7, "4.8": -6.9, "4.7": -7.1, "4.6": -7.3, "4.5": -7.6, "4.4": -7.8, "4.3": -8.0, "4.2": -8.2, "4.1": -8.5}, "reduced": -9.0}, {"vologovmist": 62.23, "values": {"5.0": -5.9, "4.9": -6.2, "4.8": -6.4, "4.7": -6.6, "4.6": -6.8, "4.5": -7.1, "4.4": -7.3, "4.3": -7.5, "4.2": -7.7, "4.1": -8.0}, "reduced": -8.5}, {"vologovmist": 64.95, "values": {"5.0": -5.4, "4.9": -5.7, "4.8": -5.9, "4.7": -6.1, "4.6": -6.3, "4.5": -6.6, "4.4": -6.8, "4.3": -7.0, "4.2": -7.2, "4.1": -7.5}, "reduced": -8.0}, {"vologovmist": 68.15, "values": {"5.0": -4.9, "4.9": -5.2, "4.8": -5.4, "4.7": -5.6, "4.6": -5.8, "4.5": -6.0, "4.4": -6.2, "4.3": -6.5, "4.2": -6.7, "4.1": -7.0}, "reduced": -7.5}, {"vologovmist": 71.35, "values": {"5.0": -4.4, "4.9": -4.6, "4.8": -4.8, "4.7": -5.1, "4.6": -5.3, "4.5": -5.5, "4.4": -5.7, "4.3": -6.0, "4.2": -6.2, "4.1": -6.5}, "reduced": -7.0}, {"vologovmist": 74.55, "values": {"5.0": -3.9, "4.9": -4.1, "4.8": -4.3, "4.7": -4.6, "4.6": -4.8, "4.5": -5.0, "4.4": -5.2, "4.3": -5.5, "4.2": -5.7, "4.1": -6.0}, "reduced": -6.5}, {"vologovmist": 77.75, "values": {"5.0": -3.4, "4.9": -3.6, "4.8": -3.8, "4.7": -4.1, "4.6": -4.3, "4.5": -4.5, "4.4": -4.7, "4.3": -5.0, "4.2": -5.2, "4.1": -5.5}, "reduced": -6.0}, {"vologovmist": 81.51, "values": {"5.0": -2.9, "4.9": -3.1, "4.8": -3.3, "4.7": -3.6, "4.6": -3.8, "4.5": -4.0, "4.4": -4.2, "4.3": -4.5, "4.2": -4.7, "4.1": -5.0}, "reduced": -5.5}, {"vologovmist": 85.27, "values": {"5.0": -2.4, "4.9": -2.6, "4.8": -2.8, "4.7": -3.1, "4.6": -3.3, "4.5": -3.5, "4.4": -3.7, "4.3": -4.0, "4.2": -4.2, "4.1": -4.5}, "reduced": -5.0}, {"vologovmist": 89.03, "values": {"5.0": -1.9, "4.9": -2.1, "4.8": -2.3, "4.7": -2.6, "4.6": -2.8, "4.5": -3.0, "4.4": -3.2, "4.3": -3.5, "4.2": -3.7, "4.1": -4.0}, "reduced": -4.5}, {"vologovmist": 92.79, "values": {"5.0": -1.4, "4.9": -1.6, "4.8": -1.8, "4.7": -2.1, "4.6": -2.3, "4.5": -2.5, "4.4": -2.7, "4.3": -3.0, "4.2": -3.2, "4.1": -3.5}, "reduced": -4.0}, {"vologovmist": 97.2, "values": {"5.0": -0.9, "4.9": -1.1, "4.8": -1.3, "4.7": -1.6, "4.6": -1.8, "4.5": -2.0, "4.4": -2.2, "4.3": -2.5, "4.2": -2.7, "4.1": -3.0}, "reduced": -3.5}, {"vologovmist": 101.6, "values": {"5.0": -0.4, "4.9": -0.6, "4.8": -0.8, "4.7": -1.1, "4.6": -1.3, "4.5": -1.5, "4.4": -1.7, "4.3": -2.0, "4.2": -2.2, "4.1": -2.5}, "reduced": -3.0}, {"vologovmist": 106.0, "values": {"5.0": 0.1, "4.9": -0.1, "4.8": -0.3, "4.7": -0.5, "4.6": -0.7, "4.5": -1.0, "4.4": -1.2, "4.3": -1.5, "4.2": -1.7, "4.1": -2.0}, "reduced": -2.5}, {"vologovmist": 110.41, "values": {"5.0": 0.6, "4.9": 0.4, "4.8": 0.2, "4.7": 0.0, "4.6": -0.2, "4.5": -0.5, "4.4": -0.7, "4.3": -1.0, "4.2": -1.2, "4.1": -1.5}, "reduced": -2.0}, {"vologovmist": 115.55, "values": {"5.0": 1.2, "4.9": 1.0, "4.8": 0.7, "4.7": 0.5, "4.6": 0.3, "4.5": 0.1, "4.4": -0.2, "4.3": -0.5, "4.2": -0.7, "4.1": -1.0}, "reduced": -1.5}, {"vologovmist": 120.69, "values": {"5.0": 1.7, "4.9": 1.5, "4.8": 1.2, "4.7": 1.0, "4.6": 0.8, "4.5": 0.6, "4.4": 0.3, "4.3": 0.1, "4.2": -0.2, "4.1": -0.5}, "reduced": -1.0}, {"vologovmist": 125.83, "values": {"5.0": 2.2, "4.9": 2.0, "4.8": 1.7, "4.7": 1.5, "4.6": 1.3, "4.5": 1.1, "4.4": 0.8, "4.3": 0.6, "4.2": 0.3, "4.1": 0.1}, "reduced": -0.5}]}
+
+
+/* ==================== НАВІГАЦІЯ ==================== */
+function openScreen(screenId, fromHistory = false) {
+  const current = document.querySelector('.screen.active')?.id || 'screen-menu';
+
+  // Внутрішній екран отримує запис історії браузера.
+  // Це дозволяє системній кнопці/жесту Back Android повернутися в меню.
+  if (!fromHistory && screenId !== 'screen-menu' && screenId !== current) {
+    history.pushState({ screen: screenId }, '', '#'+screenId);
+  }
+
+  // Системний Back Android -> головне меню.
+  if (fromHistory) screenId = 'screen-menu';
+
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(screenId);
+  if (target) target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (screenId === 'screen-notes') {
+    if (typeof stampNotesDate === 'function') stampNotesDate();
+    const pad = document.getElementById('notesPad');
+    if (pad) setTimeout(() => pad.focus(), 80);
+  }
+
+  if (screenId === 'screen-menu' && typeof refreshDashboard === 'function') {
+    refreshDashboard();
+  }
+}
+
+(function dendySelect() {
+  const menu = document.querySelector('#screen-menu .nav-menu');
+  if (!menu) return;
+  const items = [...menu.querySelectorAll('.menu-btn')];
+  let i = 0;
+  function mark(n) {
+    i = (n + items.length) % items.length;
+    items.forEach((b, k) => b.classList.toggle('active-item', k === i));
+  }
+  items.forEach((b, k) => b.addEventListener('mouseenter', () => mark(k)));
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('screen-menu')?.classList.contains('active')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); mark(i + 1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); mark(i - 1); }
+    if (e.key === 'Enter') { e.preventDefault(); items[i].click(); }
+  });
+})();
+
+/* ==================== ТОЧНА ЛОГІКА ТАНКІВ (інтерполяція по таблиці) ==================== */
+function volumeFromHeight(data, h, maxH, maxV) {
+  if (h <= 0) return 0;
+  if (h >= maxH) return maxV;
+  let lo = 0, hi = data.length - 1;
+  while (lo < hi - 1) {
+    const mid = (lo + hi) >> 1;
+    if (data[mid][0] <= h) lo = mid;
+    else hi = mid;
+  }
+  const [h0, v0] = data[lo];
+  const [h1, v1] = data[hi];
+  if (h1 === h0) return v0;
+  return v0 + (v1 - v0) * (h - h0) / (h1 - h0);
+}
+
+function heightFromVolume(data, v, maxH, maxV) {
+  if (v <= 0) return 0;
+  if (v >= maxV) return maxH;
+  let lo = 0, hi = data.length - 1;
+  while (lo < hi - 1) {
+    const mid = (lo + hi) >> 1;
+    if (data[mid][1] <= v) lo = mid;
+    else hi = mid;
+  }
+  const [h0, v0] = data[lo];
+  const [h1, v1] = data[hi];
+  if (v1 === v0) return h0;
+  return h0 + (h1 - h0) * (v - v0) / (v1 - v0);
+}
+
+;
+
+;
+
+;
+
+;
+
+;
+
+const TANK_CFG = {
+  '2':  { data: tankData,  maxH: 2.739, maxV: 35.577, hasDens: false },
+  '3':  { data: tankData3, maxH: 2.838, maxV: 54.529, hasDens: true  },
+  '4':  { data: tankData4,  maxH: 2.857, maxV: 25.893, hasDens: true  },
+  '5':  { data: tankData5,  maxH: 2.863, maxV: 26.030, hasDens: true  },
+  '12': { data: tankData12, maxH: 2.755, maxV: 52.767, hasDens: true  },
+  'M1': { data: tankDataM1, maxH: 2.662, maxV: 25.704, hasDens: true  },
+  'M2': { data: tankDataM2, maxH: 2.800, maxV: 25.563, hasDens: true  }
+};
+
+function parseNum(raw) {
+  if (raw == null) return NaN;
+  const s = String(raw).trim().replace(',', '.');
+  if (s === '') return NaN;
+  return parseFloat(s);
+}
+
+function updateTankUI(id) {
+  const cfg = TANK_CFG[id];
+  const hInput = document.getElementById('hInput' + id);
+  const volInput = document.getElementById('volInput' + id);
+  const densInput = document.getElementById('densInput' + id);
+
+  let hMm = parseNum(hInput.value);
+  let v = parseNum(volInput.value);
+  if (isNaN(hMm)) hMm = 0;
+  if (isNaN(v)) v = 0;
+
+  const pct = Math.min(100, Math.max(0, (v / cfg.maxV) * 100));
+
+  const liquid = document.getElementById('liquid' + id);
+  if (liquid) liquid.style.height = pct + '%';
+
+  const dispVol = document.getElementById('dispVol' + id);
+  if (dispVol) dispVol.textContent = v.toFixed(3);
+
+  const dispH = document.getElementById('dispH' + id);
+  if (dispH) dispH.textContent = Math.round(hMm);
+
+  const dispPct = document.getElementById('dispPct' + id);
+  if (dispPct) dispPct.textContent = pct.toFixed(1) + ' %';
+
+  const levelLabel = document.getElementById('levelLabel' + id);
+  if (levelLabel) levelLabel.textContent = v.toFixed(3) + ' м³';
+
+  if (cfg.hasDens && densInput) {
+    const dens = parseNum(densInput.value);
+    const mass = (dens > 0 && v > 0) ? v * dens : 0;
+    const dispMass = document.getElementById('dispMass' + id);
+    if (dispMass) {
+      // Для ЄМ1/ЄМ2 — лише число, для Є3 — з «т»
+      if (id === 'M1' || id === 'M2') {
+        dispMass.textContent = mass > 0 ? mass.toFixed(3) : '—';
+      } else {
+        dispMass.textContent = mass > 0 ? mass.toFixed(3) + ' т' : '— т';
+      }
+    }
+    const massLabel = document.getElementById('massLabel' + id);
+    if (massLabel) {
+      if (mass > 0) {
+        massLabel.textContent = mass.toFixed(3) + ' т';
+        massLabel.classList.add('show');
+      } else {
+        massLabel.classList.remove('show');
+      }
+    }
+  }
+  if (typeof refreshDashboard === 'function') refreshDashboard();
+}
+
+function hideKeyboard() {
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
+}
+
+function bindTank(id) {
+  const cfg = TANK_CFG[id];
+  const hInput = document.getElementById('hInput' + id);
+  const volInput = document.getElementById('volInput' + id);
+  const densInput = document.getElementById('densInput' + id);
+  let updating = false;
+
+  function onEnterHide(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      hideKeyboard();
+    }
+  }
+
+  hInput.addEventListener('keydown', onEnterHide);
+  volInput.addEventListener('keydown', onEnterHide);
+
+  hInput.addEventListener('input', () => {
+    if (updating) return;
+    updating = true;
+    const raw = hInput.value.trim();
+    if (raw === '') {
+      volInput.value = '';
+      updateTankUI(id);
+      updating = false;
+      return;
+    }
+    let hMm = parseNum(raw) || 0;
+    hMm = Math.max(0, Math.min(cfg.maxH * 1000, hMm));
+    const h = hMm / 1000;
+    let v;
+    if (cfg.data) {
+      v = volumeFromHeight(cfg.data, h, cfg.maxH, cfg.maxV);
+    } else {
+      v = (h / cfg.maxH) * cfg.maxV;
+    }
+    volInput.value = v.toFixed(3);
+    updateTankUI(id);
+    updating = false;
+  });
+
+  volInput.addEventListener('input', () => {
+    if (updating) return;
+    updating = true;
+    const raw = volInput.value.trim();
+    if (raw === '') {
+      hInput.value = '';
+      updateTankUI(id);
+      updating = false;
+      return;
+    }
+    let v = parseNum(raw) || 0;
+    v = Math.max(0, Math.min(cfg.maxV, v));
+    let h;
+    if (cfg.data) {
+      h = heightFromVolume(cfg.data, v, cfg.maxH, cfg.maxV);
+    } else {
+      h = (v / cfg.maxV) * cfg.maxH;
+    }
+    hInput.value = Math.round(h * 1000);
+    updateTankUI(id);
+    updating = false;
+  });
+
+  if (densInput) {
+    densInput.addEventListener('keydown', onEnterHide);
+    // Миттєве оновлення маси під час введення щільності
+    densInput.addEventListener('input', () => updateTankUI(id));
+    densInput.addEventListener('blur', () => updateTankUI(id));
+    densInput.addEventListener('change', () => updateTankUI(id));
+  }
+
+  updateTankUI(id);
+}
+
+function clearTank(id) {
+  document.getElementById('hInput' + id).value = '';
+  document.getElementById('volInput' + id).value = '';
+  const dens = document.getElementById('densInput' + id);
+  if (dens) dens.value = '';
+  updateTankUI(id);
+}
+
+['2', '3', '4', '5', '12', 'M1', 'M2'].forEach(bindTank);
+
+/* Збереження даних при згортанні / перезавантаженні */
+const PERSIST_KEY = 'ukpg_state_v1';
+const PERSIST_IDS = [
+  'hInput2','volInput2','rateInput2',
+  'hInput3','volInput3','densInput3','rateInput3',
+  'hInput4','volInput4','densInput4','rateInput4',
+  'hInput5','volInput5','densInput5','rateInput5',
+  'hInput12','volInput12','densInput12','rateInput12',
+  'hInputM1','volInputM1','densInputM1',
+  'hInputM2','volInputM2','densInputM2',
+  'press','dew','notesPad'
+];
+
+function saveUkpgState() {
+  try {
+    const s = {};
+    PERSIST_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) s[id] = el.value;
+    });
+    if (typeof dewSign !== 'undefined') s.dewSign = dewSign;
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(s));
+  } catch (e) {}
+}
+
+function stampNotesDate() {
+  const el = document.getElementById('notesDate');
+  if (!el) return;
+  const now = new Date();
+  el.textContent = now.toLocaleDateString('uk-UA', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  }) + '  ' + now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+}
+(function bindNotes() {
+  const pad = document.getElementById('notesPad');
+  const pos = document.getElementById('notesPos');
+  if (!pad) return;
+  function updatePos() {
+    const v = pad.value.slice(0, pad.selectionStart);
+    const lines = v.split('\n');
+    if (pos) pos.textContent = 'Ln: ' + lines.length + '  Col: ' + (lines[lines.length - 1].length + 1);
+  }
+  pad.addEventListener('input', () => { updatePos(); saveUkpgState(); if (typeof updateJimTicker === 'function') updateJimTicker(); });
+  pad.addEventListener('keyup', updatePos);
+  pad.addEventListener('click', updatePos);
+  stampNotesDate();
+  setInterval(stampNotesDate, 30000);
+})();
+
+function loadUkpgState() {
+  try {
+    const raw = localStorage.getItem(PERSIST_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    PERSIST_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && typeof s[id] === 'string') el.value = s[id];
+    });
+    ['2','3','4','5','12','M1','M2'].forEach(id => {
+      if (typeof updateTankUI === 'function') updateTankUI(id);
+    });
+    if (typeof dewSign !== 'undefined' && (s.dewSign === 1 || s.dewSign === -1)) {
+      dewSign = s.dewSign;
+      const st = document.getElementById('signToggle');
+      if (st) {
+        st.textContent = dewSign === -1 ? '−' : '+';
+        st.classList.toggle('negative', dewSign === -1);
+      }
+      if (typeof calcDewPoint === 'function') calcDewPoint();
+    }
+  } catch (e) {}
+}
+
+const _updTank = updateTankUI;
+updateTankUI = function(id) {
+  _updTank(id);
+  saveUkpgState();
+};
+const _clearTank = clearTank;
+clearTank = function(id) {
+  _clearTank(id);
+  saveUkpgState();
+};
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveUkpgState();
+  if (document.visibilityState === 'visible') {
+    loadUkpgState();
+  }
+});
+window.addEventListener('pagehide', saveUkpgState);
+window.addEventListener('pageshow', loadUkpgState);
+
+// Приховати клавіатуру по Enter також на екрані точки роси
+document.getElementById('press').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); hideKeyboard(); }
+});
+document.getElementById('dew').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); hideKeyboard(); }
+});
+
+/* ==================== ТОЧКА РОСИ (повна таблиця СОУ) ==================== */
+const pressInput = document.getElementById('press');
+const dewInput = document.getElementById('dew');
+const signToggle = document.getElementById('signToggle');
+const errDiv = document.getElementById('err');
+const resultDiv = document.getElementById('result');
+const clearDewBtn = document.getElementById('clearDew');
+
+let dewSign = -1;
+
+signToggle.addEventListener('click', () => {
+  dewSign = dewSign === -1 ? 1 : -1;
+  signToggle.textContent = dewSign === -1 ? '−' : '+';
+  signToggle.classList.toggle('negative', dewSign === -1);
+  calcDewPoint();
+});
+
+pressInput.addEventListener('input', calcDewPoint);
+dewInput.addEventListener('input', calcDewPoint);
+
+clearDewBtn.addEventListener('click', () => {
+  pressInput.value = '';
+  dewInput.value = '';
+  errDiv.classList.remove('show');
+  resultDiv.classList.remove('show');
+});
+
+function resolveDewInput(raw) {
+  raw = raw.trim().replace(',', '.');
+  if (raw === '') return NaN;
+  if (raw.startsWith('-') || raw.startsWith('+')) return parseFloat(raw);
+  const num = parseFloat(raw);
+  if (isNaN(num)) return NaN;
+  return dewSign * Math.abs(num);
+}
+
+function resolvePressure(raw) {
+  raw = raw.trim().replace(',', '.');
+  if (raw === '') return null;
+  let num = parseFloat(raw);
+  if (isNaN(num)) return null;
+  let encoded = (num >= 4 && num <= 5) ? num * 10 : num;
+  let rounded = Math.round(encoded);
+  if (rounded < 41) rounded = 41;
+  if (rounded > 50) rounded = 50;
+  const mpa = rounded / 10;
+  let match = DATA.pressures.find(p => Math.abs(p - mpa) < 0.001);
+  if (match === undefined) {
+    match = DATA.pressures.reduce((a, b) => Math.abs(b - mpa) < Math.abs(a - mpa) ? b : a);
+  }
+  return match;
+}
+
+function findRow(pressure, dewTemp) {
+  const key = pressure.toFixed(1);
+  const points = DATA.rows
+    .filter(r => r.values[key] !== undefined)
+    .map(r => ({ value: r.values[key], reduced: r.reduced, vlaga: r.vologovmist }))
+    .sort((a, b) => a.value - b.value);
+  if (points.length === 0) return { row: null, key, interpolated: false };
+
+  const EPS = 0.001;
+  for (const p of points) {
+    if (Math.abs(p.value - dewTemp) < EPS) {
+      return { row: { reduced: p.reduced, vologovmist: p.vlaga }, key, interpolated: false, matchedValue: p.value };
+    }
+  }
+  if (dewTemp < points[0].value) {
+    const a = points[0], b = points[1];
+    const t = (dewTemp - a.value) / (b.value - a.value);
+    return {
+      row: { reduced: a.reduced + t * (b.reduced - a.reduced), vologovmist: a.vlaga + t * (b.vlaga - a.vlaga) },
+      key, interpolated: true, extrapolated: true
+    };
+  }
+  if (dewTemp > points[points.length - 1].value) {
+    const a = points[points.length - 2], b = points[points.length - 1];
+    const t = (dewTemp - a.value) / (b.value - a.value);
+    return {
+      row: { reduced: a.reduced + t * (b.reduced - a.reduced), vologovmist: a.vlaga + t * (b.vlaga - a.vlaga) },
+      key, interpolated: true, extrapolated: true
+    };
+  }
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    if (dewTemp >= a.value && dewTemp <= b.value) {
+      const t = (dewTemp - a.value) / (b.value - a.value);
+      return {
+        row: { reduced: a.reduced + t * (b.reduced - a.reduced), vologovmist: a.vlaga + t * (b.vlaga - a.vlaga) },
+        key, interpolated: true
+      };
+    }
+  }
+  return { row: null, key, interpolated: false };
+}
+
+function calcDewPoint() {
+  errDiv.classList.remove('show');
+  resultDiv.classList.remove('show');
+
+  const rawPress = pressInput.value.trim();
+  const rawDew = dewInput.value.trim();
+  if (rawPress === '' || rawDew === '') return;
+
+  const dewTemp = resolveDewInput(dewInput.value);
+  if (isNaN(dewTemp)) {
+    errDiv.textContent = 'Некоректне значення температури точки роси.';
+    errDiv.classList.add('show');
+    return;
+  }
+  const pressure = resolvePressure(rawPress);
+  if (pressure === null) {
+    errDiv.textContent = 'Некоректне значення тиску/колектора.';
+    errDiv.classList.add('show');
+    return;
+  }
+
+  const { row, key, interpolated, extrapolated, matchedValue } = findRow(pressure, dewTemp);
+  if (!row) {
+    errDiv.textContent = 'Не вдалося знайти відповідний стовпець тиску в таблиці.';
+    errDiv.classList.add('show');
+    return;
+  }
+
+  document.getElementById('rPress').textContent = key.replace('.', ',') + ' МПа';
+  if (interpolated) {
+    document.getElementById('rTableVal').textContent =
+      dewTemp.toFixed(2).replace('.', ',') + ' °C  (' + (extrapolated ? 'екстрапольовано' : 'інтерпольовано') + ')';
+  } else {
+    document.getElementById('rTableVal').textContent =
+      matchedValue.toFixed(1).replace('.', ',') + ' °C  (точне значення)';
+  }
+  document.getElementById('rVlaga').textContent = row.vologovmist.toFixed(2).replace('.', ',') + ' мг/м³';
+  document.getElementById('rReduced').textContent = row.reduced.toFixed(2).replace('.', ',') + ' °C';
+  resultDiv.classList.add('show');
+}
+
+/* ==================== ДАШБОРД ==================== */
+
+
+function setDashBar(id, pct) {
+  const bar = document.getElementById('dashBar' + id);
+  const card = document.getElementById('dashCard' + id);
+  const p = Math.max(0, Math.min(100, pct || 0));
+  if (bar) bar.style.width = p + '%';
+  if (card) card.classList.toggle('warn-high', p >= 90);
+}
+function setDashTank(id, maxV, hasMass) {
+  const v = parseNum(document.getElementById('volInput' + id)?.value);
+  const volEl = document.getElementById('dashVol' + id);
+  const pctEl = document.getElementById('dashPct' + id);
+  const massEl = document.getElementById('dashMass' + id);
+  if (!isNaN(v) && v > 0) {
+    if (volEl) volEl.textContent = v.toFixed(2);
+    const pct = Math.min(100, (v / maxV) * 100);
+    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+    setDashBar(id, pct);
+    if (hasMass && massEl) {
+      const d = parseNum(document.getElementById('densInput' + id)?.value);
+      massEl.textContent = (d > 0) ? (v * d).toFixed(2) + 'T' : '';
+    }
+  } else {
+    if (volEl) volEl.textContent = '—';
+    if (pctEl) pctEl.textContent = '';
+    if (massEl) massEl.textContent = '';
+    setDashBar(id, 0);
+  }
+}
+
+const TTF_LIMIT = { '2': null, '3': 47, '4': 23, '5': 23, '12': 47 };
+const TTF_NAME = { '2': 'Є2', '3': 'Є3', '4': 'Є4', '5': 'Є5', '12': 'Є12' };
+
+function tankFullEta(id) {
+  const rate = parseNum(document.getElementById('rateInput' + id)?.value);
+  if (isNaN(rate) || rate <= 0) return null;
+  const v = parseNum(document.getElementById('volInput' + id)?.value);
+  const vol = (!isNaN(v) && v > 0) ? v : 0;
+  const lim = TTF_LIMIT[id];
+  const maxV = (lim != null) ? lim : (TANK_CFG[id] ? TANK_CFG[id].maxV : 0);
+  if (!maxV) return null;
+  if (vol >= maxV) return TTF_NAME[id] + ' повний';
+  const hours = (maxV - vol) / rate;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  const fullAt = new Date(Date.now() + hours * 3600 * 1000);
+  const hh = String(fullAt.getHours()).padStart(2, '0');
+  const mm = String(fullAt.getMinutes()).padStart(2, '0');
+  const left = h > 0 ? (h + 'год ' + m + 'хв') : (m + 'хв');
+  return TTF_NAME[id] + ' до повного: ' + left + ' о ' + hh + ':' + mm;
+}
+
+function updateJimTicker() {
+  const el = document.getElementById('jimText');
+  if (!el) return;
+  const clock = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const pad = document.getElementById('notesPad');
+  const note = pad ? pad.value.replace(/\s+/g, ' ').trim() : '';
+  const lines = ['2','3','4','5','12'].map(tankFullEta).filter(Boolean);
+  const parts = [];
+  if (note) parts.push(note);
+  if (lines.length) parts.push(lines.join(' '));
+  const body = parts.length ? parts.join(' / ') : 'немає середньої добучі';
+  const clockEl = el.querySelector('[data-clock]');
+  if (clockEl) {
+    clockEl.textContent = clock;
+    const rest = el.querySelector('[data-rest]');
+    if (rest) rest.textContent = ' / ' + body;
+    return;
+  }
+  el.textContent = '';
+  const t = document.createElement('span');
+  t.setAttribute('data-clock', '1');
+  t.style.color = '#88c070';
+  t.textContent = clock;
+  const r = document.createElement('span');
+  r.setAttribute('data-rest', '1');
+  r.textContent = ' / ' + body;
+  el.appendChild(t);
+  el.appendChild(r);
+}
+
+function tickAllCalcs() {
+  if (typeof updateJimTicker === 'function') updateJimTicker();
+  if (typeof refreshDashboard === 'function') refreshDashboard();
+  if (typeof updateTimeToFull === 'function') updateTimeToFull();
+  if (typeof updateTimeToFull2 === 'function') updateTimeToFull2();
+  if (typeof updateTimeToFull4 === 'function') updateTimeToFull4();
+  if (typeof updateTimeToFull5 === 'function') updateTimeToFull5();
+  if (typeof updateTimeToFull12 === 'function') updateTimeToFull12();
+  if (typeof stampNotesDate === 'function') stampNotesDate();
+}
+function startLiveClocks() {
+  if (window.__ukpgClock) return;
+  tickAllCalcs();
+  window.__ukpgClock = setInterval(tickAllCalcs, 1000);
+}
+
+function refreshDashboard() {
+  if (!TANK_CFG) return;
+  setDashTank('2', TANK_CFG['2'].maxV, false);
+  setDashTank('3', TANK_CFG['3'].maxV, true);
+  setDashTank('4', TANK_CFG['4'].maxV, true);
+  setDashTank('5', TANK_CFG['5'].maxV, true);
+  setDashTank('12', TANK_CFG['12'].maxV, true);
+  setDashTank('M1', TANK_CFG['M1'].maxV, true);
+  setDashTank('M2', TANK_CFG['M2'].maxV, true);
+  const dew = document.getElementById('dashDew');
+  const reducedEl = document.getElementById('rReduced');
+  const resultBox = document.getElementById('result');
+  if (dew) {
+    if (reducedEl && resultBox && resultBox.classList.contains('show')) {
+      const txt = reducedEl.textContent.trim().replace(' °C', '');
+      dew.textContent = (txt && txt !== '—') ? txt : '—';
+    } else dew.textContent = '—';
+  }
+  updateJimTicker();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    loadUkpgState();
+    refreshDashboard();
+    startLiveClocks();
+  });
+} else {
+  loadUkpgState();
+  refreshDashboard();
+  startLiveClocks();
+}
+
+
+/* ==================== ЧАС ДО ПОВНОГО (Є3) ==================== */
+let condRate = 6.5;
+
+function setCondRate(r) {
+  condRate = r;
+  const el = document.getElementById('rateInput3');
+  if (el) el.value = r;
+  updateTimeToFull();
+}
+
+function updateTimeToFull() {
+  const box = document.getElementById('timeToFull3');
+  const valEl = document.getElementById('ttfVal3');
+  const subEl = document.getElementById('ttfSub3');
+  if (!box) return;
+
+  const v = parseNum(document.getElementById('volInput3')?.value);
+  let rate = parseNum(document.getElementById('rateInput3')?.value);
+  if (isNaN(rate) || rate <= 0) rate = condRate;
+
+  const maxV = 47; // робоче обмеження Є3
+  if (isNaN(v) || v <= 0) {
+    box.style.display = 'none';
+    return;
+  }
+  if (v >= maxV) {
+    valEl.textContent = 'Повний';
+    subEl.textContent = 'резервуар повний (ліміт 47 м³)';
+    box.style.display = 'block';
+    return;
+  }
+
+  const remaining = maxV - v;
+  const hours = remaining / rate;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+
+  let timeStr;
+  if (h > 0) {
+    timeStr = h + ' год ' + (m > 0 ? m + ' хв' : '');
+  } else {
+    timeStr = m + ' хв';
+  }
+
+  // Орієнтовний час повного
+  const now = new Date();
+  const fullAt = new Date(now.getTime() + hours * 3600 * 1000);
+  const hh = String(fullAt.getHours()).padStart(2, '0');
+  const mm = String(fullAt.getMinutes()).padStart(2, '0');
+
+  valEl.textContent = timeStr.trim();
+  subEl.textContent = 'залишилось ' + remaining.toFixed(2) + ' м³ / орієнтовно о ' + hh + ':' + mm;
+  box.style.display = 'block';
+}
+
+// Підключити оновлення
+(function() {
+  const rateInp = document.getElementById('rateInput3');
+  if (rateInp) {
+    rateInp.addEventListener('input', () => {
+      const r = parseNum(rateInp.value);
+      if (!isNaN(r) && r > 0) condRate = r;
+      updateTimeToFull();
+    });
+    rateInp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); hideKeyboard(); }
+    });
+  }
+  // Викликати після кожного оновлення Є3
+  const origUpdate = updateTankUI;
+  updateTankUI = function(id) {
+    origUpdate(id);
+    if (id === '3') updateTimeToFull();
+  };
+})();
+
+
+/* ==================== ЧАС ДО ПОВНОГО (Є2) ==================== */
+function updateTimeToFull2() {
+  const box = document.getElementById('timeToFull2');
+  const valEl = document.getElementById('ttfVal2');
+  const subEl = document.getElementById('ttfSub2');
+  if (!box) return;
+
+  const v = parseNum(document.getElementById('volInput2')?.value);
+  let rate = parseNum(document.getElementById('rateInput2')?.value);
+  if (isNaN(rate) || rate <= 0) {
+    box.style.display = 'none';
+    return;
+  }
+
+  const maxV = TANK_CFG['2'].maxV; // повний об'єм з таблиці
+  if (isNaN(v) || v <= 0) {
+    box.style.display = 'none';
+    return;
+  }
+  if (v >= maxV) {
+    valEl.textContent = 'Повний';
+    subEl.textContent = 'досягнуто max ' + maxV.toFixed(2) + ' м³';
+    box.style.display = 'block';
+    return;
+  }
+
+  const remaining = maxV - v;
+  const hours = remaining / rate;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+
+  let timeStr;
+  if (h > 0) {
+    timeStr = h + ' год ' + (m > 0 ? m + ' хв' : '');
+  } else {
+    timeStr = m + ' хв';
+  }
+
+  const now = new Date();
+  const fullAt = new Date(now.getTime() + hours * 3600 * 1000);
+  const hh = String(fullAt.getHours()).padStart(2, '0');
+  const mm = String(fullAt.getMinutes()).padStart(2, '0');
+
+  valEl.textContent = timeStr.trim();
+  subEl.textContent = 'залишилось ' + remaining.toFixed(2) + ' м³ / орієнтовно о ' + hh + ':' + mm;
+  box.style.display = 'block';
+}
+
+(function() {
+  const rateInp2 = document.getElementById('rateInput2');
+  if (rateInp2) {
+    rateInp2.addEventListener('input', updateTimeToFull2);
+    rateInp2.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); hideKeyboard(); }
+    });
+  }
+  // Hook into updateTankUI
+  const prevUpdate = updateTankUI;
+  updateTankUI = function(id) {
+    prevUpdate(id);
+    if (id === '2') updateTimeToFull2();
+    if (id === '3') updateTimeToFull();
+  };
+})();
+
+
+/* ==================== ПІДВКЛАДКИ МЕТАНОЛ ==================== */
+function switchMethTab(which) {
+  document.getElementById('subTabM1').classList.toggle('active', which === 'M1');
+  document.getElementById('subTabM2').classList.toggle('active', which === 'M2');
+  document.getElementById('panelM1').classList.toggle('active', which === 'M1');
+  document.getElementById('panelM2').classList.toggle('active', which === 'M2');
+}
+
+
+/* ==================== ПІДВКЛАДКИ КОНДЕНСАТ ==================== */
+function switchCondTab(which) {
+  document.getElementById('subTab3').classList.toggle('active', which === '3');
+  document.getElementById('subTab4').classList.toggle('active', which === '4');
+  document.getElementById('subTab5').classList.toggle('active', which === '5');
+  document.getElementById('subTab12').classList.toggle('active', which === '12');
+  document.getElementById('panel3').classList.toggle('active', which === '3');
+  document.getElementById('panel4').classList.toggle('active', which === '4');
+  document.getElementById('panel5').classList.toggle('active', which === '5');
+  document.getElementById('panel12').classList.toggle('active', which === '12');
+}
+
+function updateTimeToFull4() {
+  const box = document.getElementById('timeToFull4');
+  const valEl = document.getElementById('ttfVal4');
+  const subEl = document.getElementById('ttfSub4');
+  if (!box) return;
+  const v = parseNum(document.getElementById('volInput4')?.value);
+  let rate = parseNum(document.getElementById('rateInput4')?.value);
+  if (isNaN(rate) || rate <= 0) { box.style.display = 'none'; return; }
+  const maxV = 23; // робоче обмеження Є4
+  if (isNaN(v) || v <= 0) { box.style.display = 'none'; return; }
+  if (v >= maxV) {
+    valEl.textContent = 'Повний';
+    subEl.textContent = 'резервуар повний (ліміт 23 м³)';
+    box.style.display = 'block';
+    return;
+  }
+  const remaining = maxV - v;
+  const hours = remaining / rate;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  let timeStr = h > 0 ? (h + ' год ' + (m > 0 ? m + ' хв' : '')) : (m + ' хв');
+  const fullAt = new Date(Date.now() + hours * 3600 * 1000);
+  const hh = String(fullAt.getHours()).padStart(2, '0');
+  const mm = String(fullAt.getMinutes()).padStart(2, '0');
+  valEl.textContent = timeStr.trim();
+  subEl.textContent = 'залишилось ' + remaining.toFixed(2) + ' м³ / орієнтовно о ' + hh + ':' + mm;
+  box.style.display = 'block';
+}
+
+(function() {
+  const rateInp4 = document.getElementById('rateInput4');
+  if (rateInp4) {
+    rateInp4.addEventListener('input', updateTimeToFull4);
+    rateInp4.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); hideKeyboard(); }
+    });
+  }
+  const prev = updateTankUI;
+  updateTankUI = function(id) {
+    prev(id);
+    if (id === '4') updateTimeToFull4();
+  };
+})();
+
+function updateTimeToFull5() {
+  const box = document.getElementById('timeToFull5');
+  const valEl = document.getElementById('ttfVal5');
+  const subEl = document.getElementById('ttfSub5');
+  if (!box) return;
+  const v = parseNum(document.getElementById('volInput5')?.value);
+  let rate = parseNum(document.getElementById('rateInput5')?.value);
+  if (isNaN(rate) || rate <= 0) { box.style.display = 'none'; return; }
+  const maxV = 23; // робоче обмеження Є5
+  if (isNaN(v) || v <= 0) { box.style.display = 'none'; return; }
+  if (v >= maxV) {
+    valEl.textContent = 'Повний';
+    subEl.textContent = 'резервуар повний (ліміт 23 м³)';
+    box.style.display = 'block';
+    return;
+  }
+  const remaining = maxV - v;
+  const hours = remaining / rate;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  let timeStr = h > 0 ? (h + ' год ' + (m > 0 ? m + ' хв' : '')) : (m + ' хв');
+  const fullAt = new Date(Date.now() + hours * 3600 * 1000);
+  const hh = String(fullAt.getHours()).padStart(2, '0');
+  const mm = String(fullAt.getMinutes()).padStart(2, '0');
+  valEl.textContent = timeStr.trim();
+  subEl.textContent = 'залишилось ' + remaining.toFixed(2) + ' м³ / орієнтовно о ' + hh + ':' + mm;
+  box.style.display = 'block';
+}
+
+(function() {
+  const rateInp5 = document.getElementById('rateInput5');
+  if (rateInp5) {
+    rateInp5.addEventListener('input', updateTimeToFull5);
+    rateInp5.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); hideKeyboard(); }
+    });
+  }
+  const prev5 = updateTankUI;
+  updateTankUI = function(id) {
+    prev5(id);
+    if (id === '5') updateTimeToFull5();
+  };
+})();
+
+function updateTimeToFull12() {
+  const box = document.getElementById('timeToFull12');
+  const valEl = document.getElementById('ttfVal12');
+  const subEl = document.getElementById('ttfSub12');
+  if (!box) return;
+  const v = parseNum(document.getElementById('volInput12')?.value);
+  let rate = parseNum(document.getElementById('rateInput12')?.value);
+  if (isNaN(rate) || rate <= 0) { box.style.display = 'none'; return; }
+  const maxV = 47; // робоче обмеження Є12
+  if (isNaN(v) || v <= 0) { box.style.display = 'none'; return; }
+  if (v >= maxV) {
+    valEl.textContent = 'Повний';
+    subEl.textContent = 'резервуар повний (ліміт 47 м³)';
+    box.style.display = 'block';
+    return;
+  }
+  const remaining = maxV - v;
+  const hours = remaining / rate;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  let timeStr = h > 0 ? (h + ' год ' + (m > 0 ? m + ' хв' : '')) : (m + ' хв');
+  const fullAt = new Date(Date.now() + hours * 3600 * 1000);
+  const hh = String(fullAt.getHours()).padStart(2, '0');
+  const mm = String(fullAt.getMinutes()).padStart(2, '0');
+  valEl.textContent = timeStr.trim();
+  subEl.textContent = 'залишилось ' + remaining.toFixed(2) + ' м³ / орієнтовно о ' + hh + ':' + mm;
+  box.style.display = 'block';
+}
+
+(function() {
+  const rateInp12 = document.getElementById('rateInput12');
+  if (rateInp12) {
+    rateInp12.addEventListener('input', updateTimeToFull12);
+    rateInp12.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); hideKeyboard(); }
+    });
+  }
+  const prev12 = updateTankUI;
+  updateTankUI = function(id) {
+    prev12(id);
+    if (id === '12') updateTimeToFull12();
+  };
+})();
+
+</script>
+
+<script>
+history.replaceState({ screen: 'screen-menu' }, '', location.pathname + location.search);
+
+window.addEventListener('popstate', () => {
+  const active = document.querySelector('.screen.active')?.id;
+  if (active && active !== 'screen-menu') {
+    openScreen('screen-menu', true);
+  }
+});
+</script>
+</body>
+</html>
